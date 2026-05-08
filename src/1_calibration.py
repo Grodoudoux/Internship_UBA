@@ -42,7 +42,7 @@ def parse_args() -> argparse.Namespace:
         type=int,
         default=(9, 6),
         metavar=("COLS", "ROWS"),
-        help="Nombre de coins internes du damier (colonnes lignes).",
+        help="Nombre de coins internes du damier (colonnes, lignes).",
     )
     parser.add_argument(
         "--square-size-mm",
@@ -182,8 +182,11 @@ def main() -> None:
 
     # Calibration intrinsèque : retire les biais optiques de la caméra
     # (distorsion radiale/tangentielle) avant d'interpréter la physique du bassin.
-    object_points = [objp.copy() for _ in detections]
-    image_points = [corners.reshape(-1, 1, 2).astype(np.float32) for corners in detections.values()]
+    ordered_detections = list(detections.items())
+    object_points = [objp.copy() for _ in ordered_detections]
+    image_points = [
+        corners.reshape(-1, 1, 2).astype(np.float32) for _, corners in ordered_detections
+    ]
     rms, camera_matrix, dist_coeffs = calibrate_camera(object_points, image_points, image_size)
 
     ref_corners = detections[reference_image]
